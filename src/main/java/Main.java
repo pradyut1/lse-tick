@@ -52,7 +52,7 @@ public class Main {
         Thread reader = new Thread(iqfReader);
         reader.start();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutorService.schedule(schedule, 1, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
         getAllUpdateMessage("");
         getTick("MERL");
 
@@ -73,14 +73,15 @@ public class Main {
     }
 
     private static void getTick(String symbol){
-        String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
+        String tickCommand = "P," + symbol + ",TickID,Tick,\r\n";
         writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
 
 
 
     private static Runnable schedule = () -> {
-        String command = "wMERL";
+        String command = "wMERL\r\n";
+//        System.out.println("Schedule called");
         writeCommand(command, "Error while writing to IQFeed");
     };
 
