@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class Main {
     private static IQFeed_Socket IQF;
@@ -52,6 +53,18 @@ public class Main {
         reader.start();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.schedule(schedule, 1, TimeUnit.SECONDS);
+        getAllUpdateMessage("");
+
+    }
+
+    public static void getAllUpdateMessage(String symbol) {
+        String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES";
+        try {
+            IQF.brBufferedWriter.write(allUpdateFN);
+            IQF.brBufferedWriter.flush();
+        } catch (IOException e) {
+            System.out.println("Error while getting all update filed names");
+        }
     }
 
     public static Runnable schedule = () -> {
