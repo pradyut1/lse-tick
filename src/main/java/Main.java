@@ -52,11 +52,17 @@ public class Main {
         System.out.println("Message posted protocol set.");
         Thread reader = new Thread(iqfReader);
         reader.start();
+        setUpdateFields();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
         getAllUpdateMessage();
         getTick(SYMBOL);
 
+    }
+
+    private static void setUpdateFields() {
+        String command = "S,SELECT UPDATE FIELDS,Symbol,TickID,Tick\r\n";
+        writeCommand(command, "Error while selecting update fields");
     }
 
     private static void getAllUpdateMessage() {
@@ -74,7 +80,7 @@ public class Main {
     }
 
     private static void getTick(String symbol){
-        String tickCommand = "P," + symbol + ",TickID,Tick,\r\n";
+        String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
         writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
 
