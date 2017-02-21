@@ -46,7 +46,7 @@ public class Main {
 
         IQF.CreateBuffers();
         Java_Config config = new Java_Config();
-        IQF.brBufferedWriter.write(String.format("S,SET PROTOCOL, %s\n", config.most_recent_protocol));
+        IQF.brBufferedWriter.write(String.format("S,SET PROTOCOL,%s\n", config.most_recent_protocol));
         IQF.brBufferedWriter.flush();
         System.out.println("Message posted protocol set.");
         Thread reader = new Thread(iqfReader);
@@ -58,7 +58,7 @@ public class Main {
     }
 
     public static void getAllUpdateMessage(String symbol) {
-        String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES";
+        String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
         try {
             IQF.brBufferedWriter.write(allUpdateFN);
             IQF.brBufferedWriter.flush();
