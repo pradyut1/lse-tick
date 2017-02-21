@@ -69,7 +69,8 @@ public class IQFeed_Socket extends Socket
 	{
 		try
 		{
-//			this.connect(new InetSocketAddress("localhost", iPort));t));
+			this.connect(new InetSocketAddress("localhost", iPort));
+
 		}
 		catch(IOException eError)
 		{
