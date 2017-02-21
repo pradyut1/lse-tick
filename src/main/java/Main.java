@@ -30,10 +30,11 @@ import java.util.function.Consumer;
 public class Main {
     private static IQFeed_Socket IQF;
     private static int IQF_PORT = 5009;
+    private static String SYMBOL = "GSK";
 
     public static void main(String[] args) throws IOException {
         List<String> symbols = new ArrayList<>();
-        symbols.add("MERL");
+        symbols.add(SYMBOL);
         System.out.println("Started");
         IQF = new IQFeed_Socket();
         if (IQF.ConnectSocket(IQF_PORT)) {
@@ -53,19 +54,19 @@ public class Main {
         reader.start();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
-        getAllUpdateMessage("");
-        getTick("MERL");
+        getAllUpdateMessage();
+        getTick(SYMBOL);
 
     }
 
-    private static void getAllUpdateMessage(String symbol) {
+    private static void getAllUpdateMessage() {
         String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
         writeCommand(allUpdateFN, "Error while getting all update filed names");
     }
 
-    private static void writeCommand(String allUpdateFN, String errorMsg) {
+    private static void writeCommand(String command, String errorMsg) {
         try {
-            IQF.brBufferedWriter.write(allUpdateFN);
+            IQF.brBufferedWriter.write(command);
             IQF.brBufferedWriter.flush();
         } catch (IOException e) {
             System.out.println(errorMsg);
@@ -80,7 +81,7 @@ public class Main {
 
 
     private static Runnable schedule = () -> {
-        String command = "wMERL\r\n";
+        String command = "w" + SYMBOL + "\r\n";
 //        System.out.println("Schedule called");
         writeCommand(command, "Error while writing to IQFeed");
     };
