@@ -54,31 +54,38 @@ public class Main {
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.schedule(schedule, 1, TimeUnit.SECONDS);
         getAllUpdateMessage("");
+        getTick("MERL");
 
     }
 
-    public static void getAllUpdateMessage(String symbol) {
+    private static void getAllUpdateMessage(String symbol) {
         String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
+        writeCommand(allUpdateFN, "Error while getting all update filed names");
+    }
+
+    private static void writeCommand(String allUpdateFN, String errorMsg) {
         try {
             IQF.brBufferedWriter.write(allUpdateFN);
             IQF.brBufferedWriter.flush();
         } catch (IOException e) {
-            System.out.println("Error while getting all update filed names");
+            System.out.println(errorMsg);
         }
     }
 
-    public static Runnable schedule = () -> {
+    private static void getTick(String symbol){
+        String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
+        writeCommand(tickCommand, "Error while getting tick and tick-id");
+    }
+
+
+
+    private static Runnable schedule = () -> {
         String command = "wMERL";
-        try {
-            IQF.brBufferedWriter.write(command);
-            IQF.brBufferedWriter.flush();
-        } catch (IOException e) {
-            System.out.println("Error while writing to IQFeed");
-        }
+        writeCommand(command, "Error while writing to IQFeed");
     };
 
 
-    public static Runnable iqfReader = () -> {
+    private static Runnable iqfReader = () -> {
         String line = null;
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
