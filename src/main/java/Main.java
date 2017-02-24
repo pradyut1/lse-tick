@@ -21,7 +21,7 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +39,7 @@ public class Main {
     private static String SYMBOL = "symbol";
     private static String TICK_ID = "tickId";
     private static String TICK = "tick";
-    private Set<String> accumilator = new HashSet<>();
+    private Set<String> accumulator = new HashSet<>();
     private static int COUNT = 0;
 
     private List<String> symbols;
@@ -86,17 +85,17 @@ public class Main {
     }
 
 
-    private static void setUpdateFields() {
+    private void setUpdateFields() {
         String command = "S,SELECT UPDATE FIELDS,Symbol,TickID,Tick\r\n";
         writeCommand(command, "Error while selecting update fields");
     }
 
-    private static void getAllUpdateMessage() {
+    private void getAllUpdateMessage() {
         String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
         writeCommand(allUpdateFN, "Error while getting all update filed names");
     }
 
-    private static void writeCommand(String command, String errorMsg) {
+    private void writeCommand(String command, String errorMsg) {
         try {
             IQF.brBufferedWriter.write(command);
             IQF.brBufferedWriter.flush();
@@ -105,7 +104,7 @@ public class Main {
         }
     }
 
-    private static void getTick(String symbol){
+    private void getTick(String symbol){
         String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
         writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
@@ -113,10 +112,10 @@ public class Main {
 
 
     private Runnable schedule = () -> {
-        symbols.forEach(Main::watch);
+        symbols.forEach(this::watch);
     };
 
-    private static void watch(String symbol) {
+    private void watch(String symbol) {
         String command = "w" + symbol + "\r\n";
         System.out.println("watch " + symbol);
         writeCommand(command, "Error while writing to IQFeed");
@@ -135,17 +134,17 @@ public class Main {
     };
 
     private synchronized void sum(Result res){
-        if (!accumilator.add(res.getSymbol())) {
+        if (!accumulator.add(res.getSymbol())) {
             sendOutput(COUNT);
             COUNT = 0;
-            accumilator.clear();
-            accumilator.add(res.getSymbol());
+            accumulator.clear();
+            accumulator.add(res.getSymbol());
         }
         COUNT += res.getTickValue();
     }
 
     private void sendOutput(int count) {
-        System.out.println("Count is: " + count);
+        System.out.printf("[Time-%d] Count is: %d%n", Calendar.getInstance().getTime().getSeconds(), count);
     }
 
     Optional<Result> parseForWatch(String line) {
