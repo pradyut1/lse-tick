@@ -50,8 +50,8 @@ public class Main {
         Thread reader = new Thread(iqfReader);
         reader.start();
         setUpdateFields();
-        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
+//        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+//        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
 //        getAllUpdateMessage();
 //        getTick(SYMBOL);
 
@@ -85,11 +85,15 @@ public class Main {
 
 
     private static Runnable schedule = () -> {
-        String command = "w" + SYMBOL + "\r\n";
-//        System.out.println("Schedule called");
-        writeCommand(command, "Error while writing to IQFeed");
+        watch();
 //        getTick(SYMBOL);
     };
+
+    private static void watch() {
+        String command = "w" + SYMBOL + "\r\n";
+        System.out.println("Schedule called");
+        writeCommand(command, "Error while writing to IQFeed");
+    }
 
 
     private static Runnable iqfReader = () -> {
