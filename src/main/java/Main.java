@@ -78,6 +78,7 @@ public class Main {
 
     private static void getTick(String symbol){
         String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
+        System.out.println("Tick tick");
         writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
 
@@ -85,7 +86,7 @@ public class Main {
 
     private static Runnable schedule = () -> {
 //        String command = "w" + SYMBOL + "\r\n";
-//        System.out.println("Schedule called");
+        System.out.println("Schedule called");
 //        writeCommand(command, "Error while writing to IQFeed");
         getTick(SYMBOL);
     };
