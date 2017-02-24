@@ -85,10 +85,10 @@ public class Main {
 
 
     private static Runnable schedule = () -> {
-//        String command = "w" + SYMBOL + "\r\n";
-        System.out.println("Schedule called");
-//        writeCommand(command, "Error while writing to IQFeed");
-        getTick(SYMBOL);
+        String command = "w" + SYMBOL + "\r\n";
+//        System.out.println("Schedule called");
+        writeCommand(command, "Error while writing to IQFeed");
+//        getTick(SYMBOL);
     };
 
 
