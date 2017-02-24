@@ -50,6 +50,7 @@ public class Main {
         Thread reader = new Thread(iqfReader);
         reader.start();
         setUpdateFields();
+        watch();
 //        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 //        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
 //        getAllUpdateMessage();
