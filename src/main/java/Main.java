@@ -21,20 +21,39 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
     private static IQFeed_Socket IQF;
     private static int IQF_PORT = 5009;
-    private static String SYMBOL = "GSK";
+    private static String DEFAULT_SYMBOL = "GSK";
+    private static String SYMBOL = "symbol";
+    private static String TICK_ID = "tickId";
+    private static String TICK = "tick";
+    private Set<String> accumilator = new HashSet<>();
+    private static int COUNT = 0;
+
+    private List<String> symbols;
+    // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
+    private final Pattern WATCH_PATTERN = Pattern.compile("(?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),");
 
     public static void main(String[] args) throws IOException {
-        List<String> symbols = new ArrayList<>();
-        symbols.add(SYMBOL);
+        Main main = new Main();
+        main.execute();
+    }
+
+    private void execute() throws IOException {
+        symbols = loadSymbols();
         System.out.println("Started");
         IQF = new IQFeed_Socket();
         if (IQF.ConnectSocket(IQF_PORT)) {
@@ -43,20 +62,29 @@ public class Main {
             System.out.println("Not connected :( ");
         }
         IQF.CreateBuffers();
-        Java_Config config = new Java_Config();
-        IQF.brBufferedWriter.write(String.format("S,SET PROTOCOL,%s\n", config.most_recent_protocol));
-        IQF.brBufferedWriter.flush();
+        setProtocol();
         System.out.println("Message posted protocol set.");
         Thread reader = new Thread(iqfReader);
         reader.start();
         setUpdateFields();
-        watch();
-//        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-//        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
 //        getAllUpdateMessage();
-//        getTick(SYMBOL);
-
+//        getTick(DEFAULT_SYMBOL);
     }
+
+    private void setProtocol() throws IOException {
+        Java_Config config = new Java_Config();
+        IQF.brBufferedWriter.write(String.format("S,SET PROTOCOL,%s\n", config.most_recent_protocol));
+        IQF.brBufferedWriter.flush();
+    }
+
+    private List<String> loadSymbols() {
+        List<String> codes = new ArrayList<>();
+        codes.add(DEFAULT_SYMBOL);
+        return codes;
+    }
+
 
     private static void setUpdateFields() {
         String command = "S,SELECT UPDATE FIELDS,Symbol,TickID,Tick\r\n";
@@ -79,32 +107,52 @@ public class Main {
 
     private static void getTick(String symbol){
         String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
-        System.out.println("Tick tick");
         writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
 
 
 
-    private static Runnable schedule = () -> {
-        watch();
-//        getTick(SYMBOL);
+    private Runnable schedule = () -> {
+        symbols.forEach(Main::watch);
     };
 
-    private static void watch() {
-        String command = "w" + SYMBOL + "\r\n";
-        System.out.println("Schedule called");
+    private static void watch(String symbol) {
+        String command = "w" + symbol + "\r\n";
+        System.out.println("watch " + symbol);
         writeCommand(command, "Error while writing to IQFeed");
     }
 
 
-    private static Runnable iqfReader = () -> {
+    private Runnable iqfReader = () -> {
         String line = null;
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
-                System.out.println(line);
+                parseForWatch(line).ifPresent(this::sum);
             }
         } catch (IOException e) {
             System.out.println("Error while reading IQFeed");
         }
     };
+
+    private synchronized void sum(Result res){
+        if (!accumilator.add(res.getSymbol())) {
+            sendOutput(COUNT);
+            COUNT = 0;
+            accumilator.clear();
+            accumilator.add(res.getSymbol());
+        }
+        COUNT += res.getTickValue();
+    }
+
+    private void sendOutput(int count) {
+        System.out.println("Count is: " + count);
+    }
+
+    Optional<Result> parseForWatch(String line) {
+        Matcher matcher = WATCH_PATTERN.matcher(line);
+        if (matcher.find()) {
+            return Optional.of(new Result(matcher.group(SYMBOL), matcher.group(TICK_ID), matcher.group(TICK)));
+        }
+        return Optional.empty();
+    }
 }
