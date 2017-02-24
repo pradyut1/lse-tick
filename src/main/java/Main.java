@@ -42,9 +42,6 @@ public class Main {
         } else {
             System.out.println("Not connected :( ");
         }
-
-        System.out.println("Continuing");
-
         IQF.CreateBuffers();
         Java_Config config = new Java_Config();
         IQF.brBufferedWriter.write(String.format("S,SET PROTOCOL,%s\n", config.most_recent_protocol));
@@ -55,8 +52,8 @@ public class Main {
         setUpdateFields();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(schedule, 0, 1, TimeUnit.SECONDS);
-        getAllUpdateMessage();
-        getTick(SYMBOL);
+//        getAllUpdateMessage();
+//        getTick(SYMBOL);
 
     }
 
@@ -87,9 +84,10 @@ public class Main {
 
 
     private static Runnable schedule = () -> {
-        String command = "w" + SYMBOL + "\r\n";
+//        String command = "w" + SYMBOL + "\r\n";
 //        System.out.println("Schedule called");
-        writeCommand(command, "Error while writing to IQFeed");
+//        writeCommand(command, "Error while writing to IQFeed");
+        getTick(SYMBOL);
     };
 
 
