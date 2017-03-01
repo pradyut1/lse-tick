@@ -91,7 +91,7 @@ public class Main {
 
     private void execute() throws IOException {
         symbols = loadSymbols();
-        System.out.println("Started");
+        log.info("Started");
         IQF = new IQFeed_Socket();
         if (IQF.ConnectSocket(IQF_PORT)) {
             log.info("Connected to client");
@@ -163,7 +163,7 @@ public class Main {
 
     private void watch(String symbol) {
         String command = "w" + symbol + "\r\n";
-        System.out.println("watch " + symbol);
+        log.finer("watch " + symbol);
         writeCommand(command, "Error while writing to IQFeed");
     }
 
