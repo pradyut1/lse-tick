@@ -75,11 +75,11 @@ public class Main {
         }
 
         workingDir = System.getProperty("user.dir");
-        symbolsFilePath = workingDir + File.separator + inputs[0];
-        symbolsFile = new File(symbolsFilePath);
-        if (!symbolsFile.exists()) {
-            throw new RuntimeException("Symbol file doesn't exist -> " + symbolsFilePath);
-        }
+//        symbolsFilePath = workingDir + File.separator + inputs[0];
+//        symbolsFile = new File(symbolsFilePath);
+//        if (!symbolsFile.exists()) {
+//            throw new RuntimeException("Symbol file doesn't exist -> " + symbolsFilePath);
+//        }
 
         resultCSVFilePath = workingDir + File.separator + inputs[1];
         resultCSVFile = new File(resultCSVFilePath);
@@ -118,15 +118,16 @@ public class Main {
 
     private List<String> loadSymbols() {
         List<String> codes = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(symbolsFile))) {
-          String line = null;
-            while ((line = br.readLine()) != null) {
-                codes.add(line.trim().toUpperCase());
-            }
-        } catch (IOException e) {
-            log.severe("Error loading symbols");
-        }
-        log.info("Loaded " + codes.size() + " symbols");
+//        try (BufferedReader br = new BufferedReader(new FileReader(symbolsFile))) {
+//          String line = null;
+//            while ((line = br.readLine()) != null) {
+//                codes.add(line.trim().toUpperCase());
+//            }
+//        } catch (IOException e) {
+//            log.severe("Error loading symbols");
+//        }
+//        log.info("Loaded " + codes.size() + " symbols");
+        codes.add("JTLT.Z");
         return codes;
     }
 
