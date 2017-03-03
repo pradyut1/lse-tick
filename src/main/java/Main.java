@@ -26,8 +26,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -217,16 +220,11 @@ public class Main {
                 .toString();
     }
 
-    private String getDateAndTime(){
-        Calendar instance = Calendar.getInstance();
-        return new StringBuilder(instance.get(Calendar.YEAR))
-                .append(instance.get(Calendar.MONTH))
-                .append(instance.get(Calendar.DATE))
-                .append(",")
-                .append(instance.get(Calendar.HOUR))
-                .append(instance.get(Calendar.MINUTE))
-                .append(instance.get(Calendar.SECOND))
-                .toString();
+
+
+    String getDateAndTime(){
+        LocalDateTime dateTime = LocalDateTime.now();
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd,hh:mm:ss"));
     }
 
 }
