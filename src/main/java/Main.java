@@ -19,22 +19,10 @@
  *
  */
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +33,6 @@ import java.util.regex.Pattern;
 public class Main {
     private static IQFeed_Socket IQF;
     private static int IQF_PORT = 5009;
-    private static String DEFAULT_SYMBOL = "GSK";
     private static String SYMBOL = "symbol";
     private static String TICK_ID = "tickId";
     private static String TICK = "tick";
