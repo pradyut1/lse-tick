@@ -62,7 +62,7 @@ public class Result {
         return tick;
     }
 
-    public int getTickValue(){
+    int getTickValue(){
         int tickValue;
         if (tick.isEmpty()) {
            tickValue = 183;

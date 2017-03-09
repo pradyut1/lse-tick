@@ -57,6 +57,7 @@ public class Main {
     private static File resultCSVFile;
     private static String workingDir;
     private BufferedWriter bw;
+    private static boolean started = false;
 
     private List<String> symbols;
     // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
@@ -64,7 +65,12 @@ public class Main {
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
+        inputs = new String[] {"NYSE.txt", "results.csv"};
         checkInputs(inputs);
+    }
+
+    Main() {
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -78,14 +84,19 @@ public class Main {
         }
 
         workingDir = System.getProperty("user.dir");
-//        symbolsFilePath = workingDir + File.separator + inputs[0];
-//        symbolsFile = new File(symbolsFilePath);
-//        if (!symbolsFile.exists()) {
-//            throw new RuntimeException("Symbol file doesn't exist -> " + symbolsFilePath);
-//        }
+        symbolsFilePath = workingDir + File.separator + inputs[0];
+        symbolsFile = new File(symbolsFilePath);
+        if (!symbolsFile.exists()) {
+            throw new RuntimeException("Symbol file doesn't exist -> " + symbolsFilePath);
+        }
 
         resultCSVFilePath = workingDir + File.separator + inputs[1];
         resultCSVFile = new File(resultCSVFilePath);
+        if (resultCSVFile.exists()) {
+            if (resultCSVFile.delete()) {
+                log.info("Delete previous output file");
+            }
+        }
         if (resultCSVFile.createNewFile()) {
             log.info("Result file created");
         }
@@ -109,8 +120,6 @@ public class Main {
         setUpdateFields();
         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(this::watchSymbols, 0, 1, TimeUnit.SECONDS);
-//        getAllUpdateMessage();
-//        getTick(DEFAULT_SYMBOL);
     }
 
     private void setProtocol() throws IOException {
@@ -121,16 +130,15 @@ public class Main {
 
     private List<String> loadSymbols() {
         List<String> codes = new ArrayList<>();
-//        try (BufferedReader br = new BufferedReader(new FileReader(symbolsFile))) {
-//          String line = null;
-//            while ((line = br.readLine()) != null) {
-//                codes.add(line.trim().toUpperCase());
-//            }
-//        } catch (IOException e) {
-//            log.severe("Error loading symbols");
-//        }
-//        log.info("Loaded " + codes.size() + " symbols");
-        codes.add("JTLT.Z");
+        try (BufferedReader br = new BufferedReader(new FileReader(symbolsFile))) {
+          String line = null;
+            while ((line = br.readLine()) != null) {
+                codes.add(line.trim().toUpperCase());
+            }
+        } catch (IOException e) {
+            log.severe("Error loading symbols");
+        }
+        log.info("Loaded " + codes.size() + " symbols");
         return codes;
     }
 
@@ -140,11 +148,6 @@ public class Main {
         writeCommand(command, "Error while selecting update fields");
     }
 
-    private void getAllUpdateMessage() {
-        String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
-        writeCommand(allUpdateFN, "Error while getting all update filed names");
-    }
-
     private void writeCommand(String command, String errorMsg) {
         try {
             IQF.brBufferedWriter.write(command);
@@ -152,14 +155,7 @@ public class Main {
         } catch (IOException e) {
             log.severe(errorMsg);
         }
-
     }
-
-    private void getTick(String symbol){
-        String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
-        writeCommand(tickCommand, "Error while getting tick and tick-id");
-    }
-
 
     private void watchSymbols() {
         symbols.forEach(this::watch);
@@ -187,7 +183,7 @@ public class Main {
         if (!accumulator.add(res.getSymbol())) {
             sendOutput(COUNT);
             COUNT = 0;
-            accumulator.clear();
+            accumulator = new HashSet<>();
             accumulator.add(res.getSymbol());
         }
         COUNT += res.getTickValue();
@@ -196,7 +192,10 @@ public class Main {
     private void sendOutput(int count){
         String str = buildOutput(getDateAndTime(), count);
         try {
-            bw.newLine();
+            if(started){
+               bw.newLine();
+            }
+            started = true;
             bw.write(str);
             bw.flush();
             log.info(str);
@@ -219,8 +218,6 @@ public class Main {
                 .append(count)
                 .toString();
     }
-
-
 
     String getDateAndTime(){
         LocalDateTime dateTime = LocalDateTime.now();
