@@ -64,6 +64,7 @@ public class Main {
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
+        inputs = new String[]{"test.txt", "res.csv"};
         checkInputs(inputs);
     }
 
@@ -106,11 +107,9 @@ public class Main {
         log.info("Message posted protocol set.");
         Thread reader = new Thread(iqfReader);
         reader.start();
-        setUpdateFields();
-        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutorService.scheduleAtFixedRate(this::watchSymbols, 0, 1, TimeUnit.SECONDS);
-//        getAllUpdateMessage();
-//        getTick(DEFAULT_SYMBOL);
+//        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+//        scheduledExecutorService.scheduleAtFixedRate(this::watchSymbols, 0, 1, TimeUnit.SECONDS);
+        watch("JTLT.Z");
     }
 
     private void setProtocol() throws IOException {
@@ -121,18 +120,9 @@ public class Main {
 
     private List<String> loadSymbols() {
         List<String> codes = new ArrayList<>();
-//        try (BufferedReader br = new BufferedReader(new FileReader(symbolsFile))) {
-//          String line = null;
-//            while ((line = br.readLine()) != null) {
-//                codes.add(line.trim().toUpperCase());
-//            }
-//        } catch (IOException e) {
-//            log.severe("Error loading symbols");
-//        }
-//        log.info("Loaded " + codes.size() + " symbols");
         codes.add("JTLT.Z");
-        return codes;
-    }
+            return codes;
+}
 
 
     private void setUpdateFields() {
@@ -176,6 +166,8 @@ public class Main {
         String line = null;
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
+                if(!line.startsWith("T"))
+                    System.out.println(line);
                 parseForWatch(line).ifPresent(this::sum);
             }
         } catch (IOException e) {
