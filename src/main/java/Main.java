@@ -61,6 +61,7 @@ public class Main {
     private List<String> symbols;
     // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
     private final Pattern WATCH_PATTERN = Pattern.compile("(?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),");
+    private final Pattern Z_PATTERN = Pattern.compile("(?<code>P),(?<tick>[0-9]+),.*");
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
@@ -107,9 +108,8 @@ public class Main {
         log.info("Message posted protocol set.");
         Thread reader = new Thread(iqfReader);
         reader.start();
-//        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-//        scheduledExecutorService.scheduleAtFixedRate(this::watchSymbols, 0, 1, TimeUnit.SECONDS);
-        watch("JTLT.Z");
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(this::watchSymbols, 0, 1, TimeUnit.SECONDS);
     }
 
     private void setProtocol() throws IOException {
@@ -121,18 +121,7 @@ public class Main {
     private List<String> loadSymbols() {
         List<String> codes = new ArrayList<>();
         codes.add("JTLT.Z");
-            return codes;
-}
-
-
-    private void setUpdateFields() {
-        String command = "S,SELECT UPDATE FIELDS,Symbol,TickID,Tick\r\n";
-        writeCommand(command, "Error while selecting update fields");
-    }
-
-    private void getAllUpdateMessage() {
-        String allUpdateFN = "S,REQUEST ALL UPDATE FIELDNAMES\r\n";
-        writeCommand(allUpdateFN, "Error while getting all update filed names");
+        return codes;
     }
 
     private void writeCommand(String command, String errorMsg) {
@@ -143,11 +132,6 @@ public class Main {
             log.severe(errorMsg);
         }
 
-    }
-
-    private void getTick(String symbol){
-        String tickCommand = "P," + symbol + ",TickID,Tick\r\n";
-        writeCommand(tickCommand, "Error while getting tick and tick-id");
     }
 
 
@@ -166,26 +150,19 @@ public class Main {
         String line = null;
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
-                if(!line.startsWith("T"))
-                    System.out.println(line);
-                parseForWatch(line).ifPresent(this::sum);
+                if (!line.startsWith("T"))
+                    parseForWatch(line).ifPresent(this::printNetTick);
             }
         } catch (IOException e) {
             log.severe("Error while reading IQFeed");
         }
     };
 
-    private synchronized void sum(Result res){
-        if (!accumulator.add(res.getSymbol())) {
-            sendOutput(COUNT);
-            COUNT = 0;
-            accumulator.clear();
-            accumulator.add(res.getSymbol());
-        }
-        COUNT += res.getTickValue();
+    private void printNetTick(int val) {
+        sendOutput(val);
     }
 
-    private void sendOutput(int count){
+    private void sendOutput(int count) {
         String str = buildOutput(getDateAndTime(), count);
         try {
             bw.newLine();
@@ -197,12 +174,12 @@ public class Main {
         }
     }
 
-    Optional<Result> parseForWatch(String line) {
-        Matcher matcher = WATCH_PATTERN.matcher(line);
+    Optional<Integer> parseForWatch(String line) {
+        Matcher matcher = Z_PATTERN.matcher(line);
         if (matcher.find()) {
-            return Optional.of(new Result(matcher.group(SYMBOL), matcher.group(TICK_ID), matcher.group(TICK)));
+            return Optional.of(Integer.valueOf(matcher.group(TICK)));
         }
-        return Optional.empty();
+        return Optional.of(0);
     }
 
     private String buildOutput(String dateAndTime, int count) {
@@ -213,8 +190,7 @@ public class Main {
     }
 
 
-
-    String getDateAndTime(){
+    String getDateAndTime() {
         LocalDateTime dateTime = LocalDateTime.now();
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd,hh:mm:ss"));
     }
