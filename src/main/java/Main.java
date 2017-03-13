@@ -19,18 +19,13 @@
  *
  */
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +44,7 @@ public class Main {
     private static String SYMBOL = "symbol";
     private static String TICK_ID = "tickId";
     private static String TICK = "tick";
+    private static String LAST = "last";
     private Set<String> accumulator = new HashSet<>();
     private static int COUNT = 0;
     private static String symbolsFilePath;
@@ -62,12 +58,19 @@ public class Main {
     // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
     private final Pattern WATCH_PATTERN = Pattern.compile("(?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),");
     private final Pattern Z_PATTERN = Pattern.compile("(?<code>P),(?<tick>[0-9]+),.*");
+    private final Pattern JTLTZ_PATTERN = Pattern.compile("P,JTLT\\.Z,(?<last>[0-9-]+).*");
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
         inputs = new String[]{"test.txt", "res.csv"};
         checkInputs(inputs);
     }
+
+    public Main() throws IOException{
+        String[] inputs = new String[]{"test.txt", "res.csv"};
+        checkInputs(inputs);
+    }
+
 
     public static void main(String[] args) throws IOException {
         Main main = new Main(args);
@@ -88,8 +91,12 @@ public class Main {
 
         resultCSVFilePath = workingDir + File.separator + inputs[1];
         resultCSVFile = new File(resultCSVFilePath);
-        if (resultCSVFile.createNewFile()) {
-            log.info("Result file created");
+        if(resultCSVFile.exists()){
+            if (resultCSVFile.delete()) {
+                log.info("Deleted previous results file");
+            }
+        }else if (resultCSVFile.createNewFile()) {
+            log.info("Created new result file");
         }
         bw = new BufferedWriter(new FileWriter(resultCSVFile));
     }
@@ -151,21 +158,22 @@ public class Main {
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
                 if (!line.startsWith("T"))
-                    parseForWatch(line).ifPresent(this::printNetTick);
+                    log.info("reades: " + line);
+                    parseForWatch(line).ifPresent(this::writeToCSV);
             }
         } catch (IOException e) {
             log.severe("Error while reading IQFeed");
         }
     };
 
-    private void printNetTick(int val) {
-        sendOutput(val);
+    private void printValue(int val) {
+        writeToCSV(val);
     }
 
-    private void sendOutput(int count) {
+    private void writeToCSV(int count) {
         String str = buildOutput(getDateAndTime(), count);
         try {
-            bw.newLine();
+             bw.newLine();
             bw.write(str);
             bw.flush();
             log.info(str);
@@ -175,11 +183,11 @@ public class Main {
     }
 
     Optional<Integer> parseForWatch(String line) {
-        Matcher matcher = Z_PATTERN.matcher(line);
+        Matcher matcher = JTLTZ_PATTERN.matcher(line);
         if (matcher.find()) {
-            return Optional.of(Integer.valueOf(matcher.group(TICK)));
+            return Optional.of(Integer.valueOf(matcher.group(LAST)));
         }
-        return Optional.of(0);
+        return Optional.empty();
     }
 
     private String buildOutput(String dateAndTime, int count) {
