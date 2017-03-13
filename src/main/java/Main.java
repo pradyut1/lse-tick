@@ -158,7 +158,7 @@ public class Main {
         try {
             while ((line = IQF.brBufferedReader.readLine()) != null) {
                 if (!line.startsWith("T"))
-                    log.info("reades: " + line);
+//                    log.info("reades: " + line);
                     parseForWatch(line).ifPresent(this::writeToCSV);
             }
         } catch (IOException e) {
