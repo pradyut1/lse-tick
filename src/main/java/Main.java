@@ -58,7 +58,7 @@ public class Main {
     // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
     private final Pattern WATCH_PATTERN = Pattern.compile("(?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),");
     private final Pattern Z_PATTERN = Pattern.compile("(?<code>P),(?<tick>[0-9]+),.*");
-    private final Pattern JTNTZ_PATTERN = Pattern.compile("P,JTNT\\.Z,(?<last>[0-9-]+).*");
+    private final Pattern JTLNZ_PATTERN = Pattern.compile("P,JTNT\\.Z,(?<last>[0-9-]+).*");
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
