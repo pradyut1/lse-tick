@@ -58,7 +58,7 @@ public class Main {
     // (?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),
     private final Pattern WATCH_PATTERN = Pattern.compile("(?<code>P),(?<symbol>[A-Z]+),(?<tickId>[0-9]+),(?<tick>[0-9]*),");
     private final Pattern Z_PATTERN = Pattern.compile("(?<code>P),(?<tick>[0-9]+),.*");
-    private final Pattern JTLNZ_PATTERN = Pattern.compile("P,JTLT\\.Z,(?<last>[0-9-]+).*");
+    private final Pattern JTNTZ_PATTERN = Pattern.compile("P,JTNT\\.Z,(?<last>[0-9-]+).*");
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public Main(String[] inputs) throws IOException {
@@ -127,7 +127,7 @@ public class Main {
 
     private List<String> loadSymbols() {
         List<String> codes = new ArrayList<>();
-        codes.add("JTLT.Z");
+        codes.add("JTNT.Z");
         return codes;
     }
 
@@ -183,7 +183,7 @@ public class Main {
     }
 
     Optional<Integer> parseForWatch(String line) {
-        Matcher matcher = JTLNZ_PATTERN.matcher(line);
+        Matcher matcher = JTNTZ_PATTERN.matcher(line);
         if (matcher.find()) {
             return Optional.of(Integer.valueOf(matcher.group(LAST)));
         }
